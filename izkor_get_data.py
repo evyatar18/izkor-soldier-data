@@ -84,9 +84,3 @@ for batch in range(0, total, batch_size):
     except Exception as e:
         print("exception occurred on batch {0}".format(batch))
         print(e)
-
-
-
-
-
-
