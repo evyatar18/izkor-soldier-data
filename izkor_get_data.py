@@ -37,7 +37,7 @@ def make_requests(uuids, folder):
     timer.start()
     requests = [grequests.get(fmt.format(uuid)) for uuid in uuids]
     responses = grequests.map(requests)
-    timer.print("time to do get requests: ")
+    timer.print(current_indent + "time to do get requests: ")
     
     written = 0
     total = len(uuids)
@@ -61,12 +61,12 @@ def make_requests(uuids, folder):
 
             written += 1
         except Exception as e:
-            print("exception occurred on current batch.")
-            print("uuid causing the exception: " + uuid)
-            print(e)
+            print(current_indent + "exception occurred on current batch.")
+            print(current_indent + "uuid causing the exception: " + uuid)
+            print(current_indent + str(e))
 
     timer.stop()
-    timer.print("total time for current batch: ")
+    timer.print(current_indent + "total time for current batch: ")
 
     return written
 
@@ -79,13 +79,20 @@ total = len(uuids)
 written = 0
 batch_size = 500
 
+current_indent = ""
+
 print("starting to get data of {0} soldiers. batch size: {1}".format(total, batch_size))
 for batch in range(0, total, batch_size):
-    print("starting batch {0}.".format(batch))
+    current_indent = ""
+    print(current_indent + "starting batch {0}.".format(batch))
+    current_indent = "  "
 
     try:
         written += make_requests(uuids[batch:(batch+batch_size)], out_folder)
-        print("written data of {0}/{1}".format(written, total))
+        print(current_indent + "written data of {0}/{1}".format(written, total))
     except Exception as e:
-        print("exception occurred on batch {0}".format(batch))
-        print(e)
+        print(current_indent + "exception occurred on batch {0}".format(batch))
+        print(current_indent + str(e))
+
+    # newline separator
+    print("")
