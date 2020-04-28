@@ -43,22 +43,27 @@ def make_requests(uuids, folder):
     total = len(uuids)
     
     for uuid, response in zip(uuids, responses):
-        data = response.json()['data']
-        death_date = to_string(from_string(data['death_date']))
+        try:
+            data = response.json()['data']
+            death_date = to_string(from_string(data['death_date']))
         
-        path = folder + "/" + death_date + "-" + uuid
+            path = folder + "/" + death_date + "-" + uuid + ".json"
 
-        # write BOM
-        f = open(path, "wb")
-        f.write(codecs.BOM_UTF8)
-        f.close()
+            # write BOM
+            f = open(path, "wb")
+            f.write(codecs.BOM_UTF8)
+            f.close()
 
-        # write the actual data
-        f = open(path, "ab")
-        f.write(json.dumps(data, ensure_ascii=False).encode("utf-8").decode().encode("utf-8"))
-        f.close()
+            # write the actual data
+            f = open(path, "ab")
+            f.write(json.dumps(data, ensure_ascii=False).encode("utf-8").decode().encode("utf-8"))
+            f.close()
 
-        written += 1
+            written += 1
+        except Exception as e:
+            print("exception occurred on current batch.")
+            print("uuid causing the exception: " + uuid)
+            print(e)
 
     timer.stop()
     timer.print("total time for current batch: ")
