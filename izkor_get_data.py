@@ -1,5 +1,7 @@
 import codecs
-import grequests    
+import grequests
+
+import izkor_date_utils as dates
 
 def write_iterable(i, into):
     for elem in i:
@@ -9,49 +11,41 @@ def write_iterable(i, into):
 def get_uuids(f):
     f = open(f, "r")
     uuids = []
-    
+
     while True:
         ln = f.readline().strip()
         if len(ln) == 0:
             break
-        
+
         if not ln.startswith("en"):
             print("continued")
             print(ln)
             continue
-        
+
         uuids.append(ln)
 
     f.close()
     return uuids
 
-def from_string(st):
-    from datetime import datetime
-    
-    return datetime.strptime(st, "%d-%m-%Y")
-
-def to_string(dt):
-    return dt.strftime("%Y-%m-%d")
-
 def make_requests(uuids, folder):
     import json, timer
-    
+
     timer = timer.timer()
     timer.start()
     requests = [grequests.get(fmt.format(uuid)) for uuid in uuids]
     responses = grequests.map(requests)
     timer.print(current_indent + "time to do get requests: ")
-    
+
     written = 0
     total = len(uuids)
 
     exception_uuids = set()
-    
+
     for uuid, response in zip(uuids, responses):
         try:
             data = response.json()['data']
-            death_date = to_string(from_string(data['death_date']))
-        
+            death_date = dates.to_string(dates.from_string(data['death_date']))
+
             path = folder + "/" + death_date + "-" + uuid + ".json"
 
             # write BOM
@@ -70,7 +64,7 @@ def make_requests(uuids, folder):
             print(current_indent + "uuid causing the exception: " + uuid)
             print(current_indent + str(e))
             exception_uuids.add(uuid)
-    
+
     timer.stop()
     timer.print(current_indent + "total time for current batch: ")
 
@@ -100,7 +94,7 @@ for batch in range(0, total, batch_size):
         newly_written, exceptions += make_requests(uuids[batch:(batch+batch_size)], out_folder)
         written += newly_written
         exception_uuids = exception_uuids.union(exceptions)
-        
+
         print(current_indent + "written data of {0}/{1}".format(written, total))
     except Exception as e:
         print(current_indent + "exception occurred on batch {0}".format(batch))
